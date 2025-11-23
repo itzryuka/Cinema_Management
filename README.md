@@ -22,6 +22,5 @@ Nên khá lo sợ không thể hoạt động trên các máy sử dụng nền 
  v0.1 
  Cập nhập thêm các chức năng khác ở phần 5 và 6
 
- v1.0
-
+ v1.0 
  Tương đối hoàn tất 
