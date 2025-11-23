@@ -23,6 +23,17 @@ public class QuanLyRapPhim {
         System.out.flush();
     }
    
+    public class Config {
+        private static final String DATA_PATH = "Data/";
+        private static final String MOVIE_CSV = DATA_PATH + "movies.csv";
+        private static final String TICKETS_CSV = DATA_PATH + "tickets.csv";
+        private static final String CUSTOMERS_CSV = DATA_PATH + "customers.csv";
+        private static final String SEAT_CSV = DATA_PATH + "seats.csv";
+        private static final String INVOICES_CSV = DATA_PATH + "invoices.csv";
+        private static final String ROOM_CSV = DATA_PATH + "rooms.csv";
+        private static final String SHOWTIMES_CSV = DATA_PATH + "showtimes.csv";
+
+    }
 
     private void run() {
         Scanner scanner = new Scanner(System.in);
@@ -317,7 +328,8 @@ public class QuanLyRapPhim {
 
     public List<Ticket> readTicketsCSV() {
         List<Ticket> tickets = new ArrayList<>();
-        File file = new File("tickets.csv");
+        File file = new File(Config.TICKETS_CSV);
+
         if (!file.exists()) return tickets;
 
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
@@ -345,7 +357,7 @@ public class QuanLyRapPhim {
 }
 
     private void ghiCSV(List<Movie> movies) {
-        File file = new File(System.getProperty("user.dir") + "\\movies.csv");
+        File file = new File(Config.DATA_PATH + "movies.csv");
         try (PrintWriter pw = new PrintWriter(file, "UTF-8")) {
             for (Movie m : movies) {
                 pw.println(String.join(",", m.id, m.name, m.genre, m.duration, m.age, m.price));
@@ -355,8 +367,31 @@ public class QuanLyRapPhim {
         }
     }
 
+    private List<Movie> docCSV() {
+        List<Movie> movies = new ArrayList<>();
+        File file = new File(Config.MOVIE_CSV);
+        if (!file.exists()) {
+            System.out.println("⚠ File CSV không tồn tại!");
+            return movies;
+        }
+
+        try (Scanner sc = new Scanner(file, "UTF-8")) {
+            while (sc.hasNextLine()) {
+                String line = sc.nextLine();
+                String[] parts = line.split(",");
+                if (parts.length == 6) {
+                    movies.add(new Movie(parts[0].trim(), parts[1].trim(), parts[2].trim(), parts[3].trim(), parts[4].trim(), parts[5].trim()));
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Lỗi đọc CSV: " + e.getMessage());
+        }
+
+        return movies;
+    }
+
     public void saveInvoice(Invoice invoice) {
-        File file = new File("invoices.csv");
+        File file = new File(Config.INVOICES_CSV);
         boolean exists = file.exists();
 
         try (PrintWriter pw = new PrintWriter(new FileOutputStream(file, true), true)) {
@@ -376,6 +411,188 @@ public class QuanLyRapPhim {
             System.out.println("Lỗi lưu hóa đơn: " + e.getMessage());
         }
     }
+
+    private List<Room> docCSVRoom() {
+        List<Room> rooms = new ArrayList<>();
+        File file = new File(Config.ROOM_CSV);
+
+        if (!file.exists()) {
+            System.out.println("⚠ File rooms.csv không tồn tại!");
+            return rooms;
+        }
+
+        try (Scanner sc = new Scanner(file, "UTF-8")) {
+            while (sc.hasNextLine()) {
+                String line = sc.nextLine();
+                String[] parts = line.split(",");
+
+                if (parts.length == 3) {
+                    rooms.add(new Room(
+                            parts[0].trim(),
+                            parts[1].trim(),
+                            parts[2].trim()
+                    ));
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Lỗi đọc room.csv: " + e.getMessage());
+        }
+
+        return rooms;
+    }
+
+    private List<ShowTime> docSC() {
+        List<ShowTime> showtimes = new ArrayList<>();
+        File file = new File(Config.SHOWTIMES_CSV);
+
+        if (!file.exists()) {
+            System.out.println("⚠ Chưa có suất chiếu nào. Vui lòng tạo lịch chiếu trước.");
+            return showtimes;
+        }
+
+        try (Scanner sc = new Scanner(file, "UTF-8")) {
+            boolean isFirstLine = true;
+            while (sc.hasNextLine()) {
+                String line = sc.nextLine();
+                if (isFirstLine) { // bỏ header
+                    isFirstLine = false;
+                    continue;
+                }
+                String[] parts = line.split(",");
+                if (parts.length >= 9) {
+                    ShowTime st = new ShowTime(
+                            parts[0].trim(), // id phim
+                            parts[1].trim(), // tên phim
+                            parts[2].trim(), // id phòng
+                            parts[3].trim(), // tên phòng
+                            parts[4].trim(), // loại phòng
+                            parts[5].trim(), // ngày
+                            parts[6].trim(), // giờ
+                            parts[7].trim(), // giá thường
+                            parts[8].trim()  // giá VIP
+                    );
+                    showtimes.add(st);
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Lỗi đọc showtimes.csv: " + e.getMessage());
+        }
+
+        return showtimes;
+    }
+
+    private List<Seat> docSeatCSV() {
+        List<Seat> seats = new ArrayList<>();
+        File file = new File(Config.DATA_PATH + "seats.csv");
+        if (!file.exists()) {
+            System.out.println("⚠ Chưa có ghế nào. Vui lòng tạo sơ đồ phòng trước.");
+            return seats;
+        }
+            try (Scanner sc = new Scanner(file, "UTF-8")) {
+            while (sc.hasNextLine()) {
+                String line = sc.nextLine();
+                String[] parts = line.split(",");
+
+                if (parts.length == 4) {
+                    seats.add(new Seat(
+                                parts[0].trim(),
+                                parts[1].trim(),
+                                parts[2].trim(),
+                                parts[3].trim()
+                    ));
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Lỗi đọc seats.csv: " + e.getMessage());
+        }
+
+        return seats;
+    }
+
+    private void updateSeatCSV(String roomId, List<Seat> seats) {
+        File file = new File(Config.DATA_PATH + "seats.csv");
+        List<String> lines = new ArrayList<>();
+
+        // Nếu file chưa tồn tại, tạo mới
+        if (!file.exists()) {
+            System.out.println("⚠ File seats.csv không tồn tại!");
+            return;
+        }
+
+        // Đọc tất cả dòng từ file
+        try (Scanner sc = new Scanner(file, "UTF-8")) {
+            while (sc.hasNextLine()) {
+                String line = sc.nextLine().trim();
+                if (line.isEmpty()) continue;
+
+                String[] parts = line.split(",");
+                if (parts.length >= 4) {
+                    String rId = parts[0].trim();
+                    String code = parts[1].trim();
+                    String type = parts[2].trim();
+                    String status = parts[3].trim();
+
+                    // Nếu là phòng hiện tại, cập nhật trạng thái ghế
+                    if (rId.equals(roomId)) {
+                        Seat seat = seats.stream()
+                                .filter(s -> s.getCode().equalsIgnoreCase(code))
+                                .findFirst()
+                                .orElse(null);
+                        if (seat != null) {
+                            status = seat.getStatus();
+                        }
+                    }
+
+                    lines.add(rId + "," + code + "," + type + "," + status);
+                } else {
+                    // giữ nguyên các dòng khác
+                    lines.add(line);
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Lỗi đọc seats.csv: " + e.getMessage());
+            return;
+        }
+
+        // Ghi lại toàn bộ file với trạng thái mới
+        try (PrintWriter pw = new PrintWriter(file, "UTF-8")) {
+            for (String l : lines) {
+                pw.println(l);
+            }
+        } catch (Exception e) {
+            System.out.println("Lỗi ghi seats.csv: " + e.getMessage());
+        }
+    }
+
+    public Map<String, Customer> generateCustomerStats(List<Ticket> tickets) {
+        Map<String, Customer> customers = new LinkedHashMap<>();
+        for (Ticket t : tickets) {
+            String id = t.customerId;
+            if (!customers.containsKey(id)) {
+                customers.put(id, new Customer(t.customerId, t.customerName, t.phone));
+            }
+            customers.get(id).incrementTickets();
+        }
+        return customers;
+    }
+
+    public void writeCustomerCSV(Map<String, Customer> customers) {
+        File file = new File(Config.CUSTOMERS_CSV);
+        try (PrintWriter pw = new PrintWriter(file, "UTF-8")) {
+            pw.println("CustomerID,CustomerName,Phone,TotalTickets");
+            for (Customer c : customers.values()) {
+                pw.println(c.customerId + "," +
+                        c.customerName + "," +
+                        c.phone + "," +
+                        c.totalTickets);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
 
 
 
@@ -399,7 +616,6 @@ public class QuanLyRapPhim {
     ghiCSV(movies);
     System.out.println("Đã thêm phim thành công!");
 }
-
 
     private void suaThongTinPhim() {
     Scanner scanner = new Scanner(System.in, "UTF-8");
@@ -460,29 +676,6 @@ public class QuanLyRapPhim {
     }
 }
 
-    private List<Movie> docCSV() {
-        List<Movie> movies = new ArrayList<>();
-        File file = new File(System.getProperty("user.dir") + "\\movies.csv");
-        if (!file.exists()) {
-            System.out.println("⚠ File CSV không tồn tại!");
-            return movies;
-        }
-
-        try (Scanner sc = new Scanner(file, "UTF-8")) {
-            while (sc.hasNextLine()) {
-                String line = sc.nextLine();
-                String[] parts = line.split(",");
-                if (parts.length == 6) {
-                    movies.add(new Movie(parts[0].trim(), parts[1].trim(), parts[2].trim(), parts[3].trim(), parts[4].trim(), parts[5].trim()));
-                }
-            }
-        } catch (Exception e) {
-            System.out.println("Lỗi đọc CSV: " + e.getMessage());
-        }
-
-        return movies;
-    }
-
     private void danhSachPhim() {
         List<Movie> movies = docCSV();
 
@@ -498,15 +691,6 @@ public class QuanLyRapPhim {
                 m.id, m.name, m.genre, m.duration, m.age, m.price));
         }
     }
-
-
-
-
-
-
-
-
-
 
     private void themPhongChieu() {
         Scanner scanner = new Scanner(System.in, "UTF-8");
@@ -547,7 +731,7 @@ public class QuanLyRapPhim {
         rooms.add(new Room(id, name, type));
 
         // Ghi trở lại rooms.csv
-        File roomFile = new File(System.getProperty("user.dir") + "\\rooms.csv");
+        File roomFile = new File(System.getProperty("user.dir") + "\\Data\\rooms.csv");
         try (PrintWriter pw = new PrintWriter(roomFile, "UTF-8")) {
             for (Room r : rooms) {
                 pw.println(String.join(",", r.id, r.name, r.type));
@@ -604,8 +788,8 @@ public class QuanLyRapPhim {
         if (!newType.isEmpty()) roomToEdit.type = newType;
 
         // Ghi trở lại rooms.csv
-        File roomFile = new File(System.getProperty("user.dir") + "\\rooms.csv");
-        try (PrintWriter pw = new PrintWriter(roomFile, "UTF-8")) {
+        File file = new File(Config.ROOM_CSV);
+        try (PrintWriter pw = new PrintWriter(file, "UTF-8")) {
             for (Room r : rooms) {
                 pw.println(String.join(",", r.id, r.name, r.type));
             }
@@ -647,8 +831,8 @@ public class QuanLyRapPhim {
         }
 
         // Ghi lại rooms.csv
-        File roomFile = new File(System.getProperty("user.dir") + "\\rooms.csv");
-        try (PrintWriter pw = new PrintWriter(roomFile, "UTF-8")) {
+        File file = new File(Config.ROOM_CSV);
+        try (PrintWriter pw = new PrintWriter(file, "UTF-8")) {
             for (Room r : rooms) {
                 pw.println(String.join(",", r.id, r.name, r.type));
             }
@@ -659,7 +843,7 @@ public class QuanLyRapPhim {
         }
 
         // Xóa tất cả ghế liên quan trong seat.csv
-        File seatFile = new File(System.getProperty("user.dir") + "\\seats.csv");
+        File seatFile = new File(Config.DATA_PATH + "seats.csv");
         if (!seatFile.exists()) {
             System.out.println("⚠ seats.csv không tồn tại, chỉ xóa phòng trong rooms.csv.");
             return;
@@ -694,35 +878,6 @@ public class QuanLyRapPhim {
         }
     }
 
-    private List<Room> docCSVRoom() {
-        List<Room> rooms = new ArrayList<>();
-        File file = new File(System.getProperty("user.dir") + "\\rooms.csv");
-
-        if (!file.exists()) {
-            System.out.println("⚠ File rooms.csv không tồn tại!");
-            return rooms;
-        }
-
-        try (Scanner sc = new Scanner(file, "UTF-8")) {
-            while (sc.hasNextLine()) {
-                String line = sc.nextLine();
-                String[] parts = line.split(",");
-
-                if (parts.length == 3) {
-                    rooms.add(new Room(
-                            parts[0].trim(),
-                            parts[1].trim(),
-                            parts[2].trim()
-                    ));
-                }
-            }
-        } catch (Exception e) {
-            System.out.println("Lỗi đọc room.csv: " + e.getMessage());
-        }
-
-    return rooms;
-    }
-
     private void danhSachPhongChieu() {
     List<Room> rooms = docCSVRoom();
 
@@ -742,8 +897,8 @@ public class QuanLyRapPhim {
 }
 
     private void taoSoDoPhongChieu() {
-    File roomFile = new File(System.getProperty("user.dir") + "\\rooms.csv");
-    File seatFile = new File(System.getProperty("user.dir") + "\\seats.csv");
+    File roomFile = new File(Config.ROOM_CSV);
+    File seatFile = new File(Config.SEAT_CSV);
 
     if (!roomFile.exists()) {
         System.out.println("⚠ Không tìm thấy rooms.csv !");
@@ -828,7 +983,7 @@ public class QuanLyRapPhim {
 
     // Đọc danh sách ghế cho phòng này
     List<Seat> seats = new ArrayList<>();
-    File seatFile = new File(System.getProperty("user.dir") + "\\seats.csv");
+    File seatFile = new File(Config.SEAT_CSV);
     if (!seatFile.exists()) {
         System.out.println("⚠ seats.csv không tồn tại!");
         return;
@@ -924,49 +1079,6 @@ public class QuanLyRapPhim {
     System.out.println("Chú thích: Ghế VIP màu đỏ, ghế đã đặt sẽ in màu xanh lá.");    
 }
 
-
-    private List<ShowTime> docSC() {
-    List<ShowTime> showtimes = new ArrayList<>();
-    File file = new File(System.getProperty("user.dir") + "\\showtimes.csv");
-
-    if (!file.exists()) {
-        System.out.println("⚠ Chưa có suất chiếu nào. Vui lòng tạo lịch chiếu trước.");
-        return showtimes;
-    }
-
-    try (Scanner sc = new Scanner(file, "UTF-8")) {
-        boolean isFirstLine = true;
-        while (sc.hasNextLine()) {
-            String line = sc.nextLine();
-            if (isFirstLine) { // bỏ header
-                isFirstLine = false;
-                continue;
-            }
-            String[] parts = line.split(",");
-            if (parts.length >= 9) {
-                ShowTime st = new ShowTime(
-                        parts[0].trim(), // id phim
-                        parts[1].trim(), // tên phim
-                        parts[2].trim(), // id phòng
-                        parts[3].trim(), // tên phòng
-                        parts[4].trim(), // loại phòng
-                        parts[5].trim(), // ngày
-                        parts[6].trim(), // giờ
-                        parts[7].trim(), // giá thường
-                        parts[8].trim()  // giá VIP
-                );
-                showtimes.add(st);
-            }
-        }
-    } catch (Exception e) {
-        System.out.println("Lỗi đọc showtimes.csv: " + e.getMessage());
-    }
-
-    return showtimes;
-}
-
-
-
     public void themSuatChieu() { //Bỏ qua trùng lịch vì ngồi gần 7 tiếng vẫn không biết cách sửa lỗi date time hoặc .trim()
         Scanner scanner = new Scanner(System.in, "UTF-8");
 
@@ -1022,7 +1134,7 @@ public class QuanLyRapPhim {
         if (selectedRoom.type.equalsIgnoreCase("IMAX")) vipPrice *= 1.20;
 
         // 5. Ghi vào showtimes.csv
-        File f = new File(System.getProperty("user.dir") + "\\showtimes.csv");
+        File f = new File(Config.SHOWTIMES_CSV);
         List<String> lines = new ArrayList<>();
         try {
             if (f.exists()) {
@@ -1104,7 +1216,7 @@ public class QuanLyRapPhim {
     if (!vprice.isEmpty()) target.vprice = vprice;
 
     // Ghi lại CSV
-    File f = new File(System.getProperty("user.dir") + "\\showtimes.csv");
+    File f = new File(System.getProperty("user.dir") + "\\Data\\showtimes.csv");
     try (PrintWriter pw = new PrintWriter(f, "UTF-8")) {
         pw.println("MovieID,MovieName,RoomID,RoomName,RoomType,Date,Time,Price,VIPPrice");
         for (ShowTime st : showtimes) {
@@ -1147,7 +1259,7 @@ public class QuanLyRapPhim {
     }
 
     // Ghi lại CSV
-    File f = new File(System.getProperty("user.dir") + "\\showtimes.csv");
+    File f = new File(System.getProperty("user.dir") + "\\Data\\showtimes.csv");
     try (PrintWriter pw = new PrintWriter(f, "UTF-8")) {
         pw.println("MovieID,MovieName,RoomID,RoomName,RoomType,Date,Time,Price,VIPPrice");
         for (ShowTime st : showtimes) {
@@ -1186,90 +1298,6 @@ public class QuanLyRapPhim {
                     st.nprice,
                     st.vprice
             ));
-        }
-    }
-
-    private List<Seat> docSeatCSV() {
-    List<Seat> seats = new ArrayList<>();
-    File file = new File(System.getProperty("user.dir") + "\\seats.csv");
-    if (!file.exists()) {
-        System.out.println("⚠ Chưa có ghế nào. Vui lòng tạo sơ đồ phòng trước.");
-        return seats;
-    }
-        try (Scanner sc = new Scanner(file, "UTF-8")) {
-        while (sc.hasNextLine()) {
-            String line = sc.nextLine();
-            String[] parts = line.split(",");
-
-            if (parts.length == 4) {
-                seats.add(new Seat(
-                            parts[0].trim(),
-                            parts[1].trim(),
-                            parts[2].trim(),
-                            parts[3].trim()
-                ));
-            }
-        }
-    } catch (Exception e) {
-        System.out.println("Lỗi đọc seats.csv: " + e.getMessage());
-    }
-
-    return seats;
-}
-
-
-    private void updateSeatCSV(String roomId, List<Seat> seats) {
-        File file = new File(System.getProperty("user.dir") + "\\seats.csv");
-        List<String> lines = new ArrayList<>();
-
-        // Nếu file chưa tồn tại, tạo mới
-        if (!file.exists()) {
-            System.out.println("⚠ File seats.csv không tồn tại!");
-            return;
-        }
-
-        // Đọc tất cả dòng từ file
-        try (Scanner sc = new Scanner(file, "UTF-8")) {
-            while (sc.hasNextLine()) {
-                String line = sc.nextLine().trim();
-                if (line.isEmpty()) continue;
-
-                String[] parts = line.split(",");
-                if (parts.length >= 4) {
-                    String rId = parts[0].trim();
-                    String code = parts[1].trim();
-                    String type = parts[2].trim();
-                    String status = parts[3].trim();
-
-                    // Nếu là phòng hiện tại, cập nhật trạng thái ghế
-                    if (rId.equals(roomId)) {
-                        Seat seat = seats.stream()
-                                .filter(s -> s.getCode().equalsIgnoreCase(code))
-                                .findFirst()
-                                .orElse(null);
-                        if (seat != null) {
-                            status = seat.getStatus();
-                        }
-                    }
-
-                    lines.add(rId + "," + code + "," + type + "," + status);
-                } else {
-                    // giữ nguyên các dòng khác
-                    lines.add(line);
-                }
-            }
-        } catch (Exception e) {
-            System.out.println("Lỗi đọc seats.csv: " + e.getMessage());
-            return;
-        }
-
-        // Ghi lại toàn bộ file với trạng thái mới
-        try (PrintWriter pw = new PrintWriter(file, "UTF-8")) {
-            for (String l : lines) {
-                pw.println(l);
-            }
-        } catch (Exception e) {
-            System.out.println("Lỗi ghi seats.csv: " + e.getMessage());
         }
     }
 
@@ -1326,7 +1354,7 @@ public class QuanLyRapPhim {
 
     // 4. Hiển thị sơ đồ ghế
     List<Seat> seats = new ArrayList<>();
-    File seatFile = new File(System.getProperty("user.dir") + "\\seats.csv");
+    File seatFile = new File(Config.SEAT_CSV);
     if (!seatFile.exists()) {
         System.out.println("⚠ seats.csv không tồn tại!");
         return;
@@ -1495,7 +1523,7 @@ System.out.println("Tổng tiền: " + String.format("%,.0f", total) + " VNĐ");
 System.out.println("Ghế đã đặt: " + String.join(", ", chosenSeats));
 
     // 7. Lưu vào tickets.csv
-File file = new File(System.getProperty("user.dir") + "\\tickets.csv");
+File file = new File(Config.TICKETS_CSV);
 List<String> lines = new ArrayList<>();
 try {
     // 1. Đọc file nếu đã tồn tại
@@ -1580,9 +1608,9 @@ System.out.println("✔ Lưu vé vào tickets.csv thành công!");
     public void huyVe() {
         Scanner scanner = new Scanner(System.in, "UTF-8");
 
-        File ticketsFile = new File("tickets.csv");
-        File seatFile = new File("seats.csv");
-        File customerFile = new File("customers.csv");
+        File ticketsFile = new File("Data\\tickets.csv");
+        File seatFile = new File("Data\\seats.csv");
+        File customerFile = new File("Data\\customers.csv");
 
         if (!ticketsFile.exists() || !seatFile.exists() || !customerFile.exists()) {
             System.out.println("⚠ Chưa đủ dữ liệu. Vui lòng kiểm tra tickets.csv, seats.csv, customers.csv.");
@@ -1748,14 +1776,13 @@ System.out.println("✔ Lưu vé vào tickets.csv thành công!");
         }
 }
 
-
     private void thongKeHoaDonTheoKhachHang() {
         System.out.println("Chức năng thống kê hóa đơn theo khách hàng đang được phát triển...");
         // TODO: Xuất hóa đơn, lưu thông tin giao dịch
     }
 
     private void xemHoaDon() {
-        File file = new File("invoices.csv");
+        File file = new File(Config.INVOICES_CSV);
         if (!file.exists()) {
             System.out.println("⚠ Chưa có hóa đơn nào.");
             return;
@@ -1797,35 +1824,6 @@ System.out.println("✔ Lưu vé vào tickets.csv thành công!");
         System.out.println("==============================================================================================\n"); 
     }
 
-    public Map<String, Customer> generateCustomerStats(List<Ticket> tickets) {
-        Map<String, Customer> customers = new LinkedHashMap<>();
-        for (Ticket t : tickets) {
-            String id = t.customerId;
-            if (!customers.containsKey(id)) {
-                customers.put(id, new Customer(t.customerId, t.customerName, t.phone));
-            }
-            customers.get(id).incrementTickets();
-        }
-        return customers;
-    }
-
-
-    public void writeCustomerCSV(Map<String, Customer> customers) {
-        File file = new File("customers.csv");
-        try (PrintWriter pw = new PrintWriter(file, "UTF-8")) {
-            pw.println("CustomerID,CustomerName,Phone,TotalTickets");
-            for (Customer c : customers.values()) {
-                pw.println(c.customerId + "," +
-                        c.customerName + "," +
-                        c.phone + "," +
-                        c.totalTickets);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-
     private void capNhatDanhSachKhachHang() {
         System.out.println("=== CẬP NHẬT DANH SÁCH KHÁCH HÀNG ===");
         List<Ticket> tickets = readTicketsCSV();
@@ -1839,7 +1837,7 @@ System.out.println("✔ Lưu vé vào tickets.csv thành công!");
     }
 
     public void hienThiDanhSachKhachHang() {
-        File file = new File("customers.csv");
+        File file = new File(Config.CUSTOMERS_CSV);
 
         if (!file.exists()) {
             System.out.println("⚠ Chưa có danh sách khách hàng. Vui lòng cập nhật trước.");
@@ -1881,7 +1879,7 @@ System.out.println("✔ Lưu vé vào tickets.csv thành công!");
     }
 
     private void doanhThuTheoNgay(String ngay) {
-        File file = new File("invoices.csv");
+        File file = new File(Config.INVOICES_CSV);
         if (!file.exists()) {
             System.out.println("Chưa có hóa đơn.");
             return;
@@ -1910,7 +1908,7 @@ System.out.println("✔ Lưu vé vào tickets.csv thành công!");
     }
 
     public void doanhThuTheoThang(String month) { // month = "2025-11"
-        File file = new File("invoices.csv");
+        File file = new File(Config.INVOICES_CSV);
         if (!file.exists()) {
             System.out.println("Chưa có hóa đơn.");
             return;
@@ -1937,11 +1935,10 @@ System.out.println("✔ Lưu vé vào tickets.csv thành công!");
         System.out.println("📆 Doanh thu tháng " + month + ": " + String.format("%,.0f", total) + " VNĐ");
     }
 
-
     private void danhSachVeBanRaTheoPhim() {
         Scanner scanner = new Scanner(System.in, "UTF-8");
-        File file = new File("tickets.csv");
-        
+        File file = new File(Config.TICKETS_CSV);
+
         if (!file.exists()) {
             System.out.println("⚠ Chưa có vé nào.");
             return;
@@ -2012,7 +2009,7 @@ System.out.println("✔ Lưu vé vào tickets.csv thành công!");
     }
 
     public void top3PhimBanChay() {
-        File file = new File("tickets.csv");
+        File file = new File(Config.TICKETS_CSV);
         if (!file.exists()) {
             System.out.println("⚠ Chưa có vé để thống kê.");
             return;
