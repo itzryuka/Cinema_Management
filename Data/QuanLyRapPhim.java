@@ -18,6 +18,7 @@ public class QuanLyRapPhim {
         QuanLyRapPhim app = new QuanLyRapPhim();
         app.run();
     }
+    
     public static void clearScreen() {
         System.out.print("\033[H\033[2J");
         System.out.flush();
@@ -326,6 +327,9 @@ public class QuanLyRapPhim {
         System.out.println("0. Thoát");
     }
 
+
+    
+    // Phần đọc ghi hay các phương thức hỗ trợ khác
     public List<Ticket> readTicketsCSV() {
         List<Ticket> tickets = new ArrayList<>();
         File file = new File(Config.TICKETS_CSV);
@@ -594,7 +598,7 @@ public class QuanLyRapPhim {
 
 
 
-
+    //Phần chức năng
 
     private void themphimmoi() {
     Scanner scanner = new Scanner(System.in, "UTF-8");
@@ -2064,6 +2068,7 @@ System.out.println("✔ Lưu vé vào tickets.csv thành công!");
             this.name = name;
         }
     }
+
 
 
 
