@@ -1,6 +1,7 @@
 Cinema Management
 
 Tải file zip giải nén
+
 Hướng dẫn sử dụng:
 
 Các file tài nguyên chính đều được đặt trong file "Data"
