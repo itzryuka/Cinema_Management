@@ -15,6 +15,7 @@ Lưu Ý:
 
 
 Note:
+
 Do bài tập được code hoàn toàn trên VS Code
 
 Không dùng các nền tảng khác như NetBeans, ...
