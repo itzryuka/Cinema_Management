@@ -25,3 +25,7 @@ Nên khá lo sợ không thể hoạt động trên các máy sử dụng nền 
 
  v1.0
  Fix lại các vấn đề lỗi phông chữ và tối ưu các Path thư mục
+
+
+ <img width="1373" height="678" alt="image" src="https://github.com/user-attachments/assets/0be58ceb-b4b8-4f5e-aef7-cd86aa4b2685" />
+
