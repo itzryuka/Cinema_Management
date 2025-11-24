@@ -28,12 +28,16 @@ Nên khá lo sợ không thể hoạt động trên các máy sử dụng nền 
 
 Cách tải file:
 
-Bấm vào nút code màu xanh như hình
+Bấm vào nút code màu xanh rồi ấn Download Zip
 
 <img width="363" height="133" alt="image" src="https://github.com/user-attachments/assets/6fc78827-c8b4-4af4-a6ed-ad521ffc06d1" />
 
-
 Sau khi tải, giải nén file ra như hình
+
+<img width="1159" height="392" alt="image" src="https://github.com/user-attachments/assets/9d8bf5e2-4a7d-4369-9680-5b00a072f73e" />
+
+Nhấp đúp chuột vào file Cinema.bat là app sẽ chạy
+
 
 
 
