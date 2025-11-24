@@ -29,5 +29,9 @@ Nên khá lo sợ không thể hoạt động trên các máy sử dụng nền 
 Cách tải file:
 
 Bấm vào nút code màu xanh như hình
+<img width="363" height="133" alt="image" src="https://github.com/user-attachments/assets/6fc78827-c8b4-4af4-a6ed-ad521ffc06d1" />
+
+sau khi tải, giải nén file ra như hình
+
 
 
